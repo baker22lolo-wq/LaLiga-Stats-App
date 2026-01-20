@@ -13,6 +13,7 @@ import {
 
 import { LALIGA } from "../../src/constants/laliga";
 import { api } from "../../src/services/api";
+import { useAppColors } from "../../src/theme/colors";
 
 type Standing = {
   rank: number;
@@ -34,7 +35,10 @@ type PlayerItem = {
 
 export default function ClubScreen() {
   const router = useRouter();
-  const { teamId, teamName } = useLocalSearchParams<{ teamId: string; teamName?: string }>();
+  const { teamId, teamName } =
+    useLocalSearchParams<{ teamId: string; teamName?: string }>();
+
+  const colors = useAppColors();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -52,8 +56,7 @@ export default function ClubScreen() {
         params: { league: LALIGA.leagueId, season: LALIGA.season, team: teamId },
       });
 
-      const standingsList =
-        stRes.data?.response?.[0]?.league?.standings?.[0] || [];
+      const standingsList = stRes.data?.response?.[0]?.league?.standings?.[0] || [];
 
       const teamStanding = standingsList.find(
         (s: any) => String(s.team?.id) === String(teamId)
@@ -103,50 +106,75 @@ export default function ClubScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
         <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>Loading {teamName || "club"}...</Text>
+        <Text style={{ marginTop: 10, color: colors.text }}>
+          Loading {teamName || "club"}...
+        </Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.error}>{error}</Text>
-        <Text style={styles.tip}>Check terminal logs for details.</Text>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <Text style={[styles.error, { color: colors.text }]}>{error}</Text>
+        <Text style={[styles.tip, { color: colors.subtext }]}>
+          Check terminal logs for details.
+        </Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 16 }}>
-      <Text style={styles.header}>{teamName || "Club"}</Text>
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.bg }]}
+      contentContainerStyle={{ paddingBottom: 16 }}
+    >
+      <Text style={[styles.header, { color: colors.text }]}>
+        {teamName || "Club"}
+      </Text>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Team Stats (La Liga)</Text>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.cardTitle, { color: colors.text }]}>
+          Team Stats (La Liga)
+        </Text>
 
         {standing ? (
           <View style={styles.statsGrid}>
-            <Stat label="Rank" value={standing.rank} />
-            <Stat label="Points" value={standing.points} />
-            <Stat label="Played" value={standing.played} />
-            <Stat label="W" value={standing.win} />
-            <Stat label="D" value={standing.draw} />
-            <Stat label="L" value={standing.lose} />
-            <Stat label="GF" value={standing.goalsFor} />
-            <Stat label="GA" value={standing.goalsAgainst} />
+            <Stat label="Rank" value={standing.rank} colors={colors} />
+            <Stat label="Points" value={standing.points} colors={colors} />
+            <Stat label="Played" value={standing.played} colors={colors} />
+            <Stat label="W" value={standing.win} colors={colors} />
+            <Stat label="D" value={standing.draw} colors={colors} />
+            <Stat label="L" value={standing.lose} colors={colors} />
+            <Stat label="GF" value={standing.goalsFor} colors={colors} />
+            <Stat label="GA" value={standing.goalsAgainst} colors={colors} />
           </View>
         ) : (
-          <Text style={styles.tip}>No standings data found for this team.</Text>
+          <Text style={[styles.tip, { color: colors.subtext }]}>
+            No standings data found for this team.
+          </Text>
         )}
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Players</Text>
+      <View
+        style={[
+          styles.card,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <Text style={[styles.cardTitle, { color: colors.text }]}>Players</Text>
 
         {players.length === 0 ? (
-          <Text style={styles.tip}>No squad data returned.</Text>
+          <Text style={[styles.tip, { color: colors.subtext }]}>
+            No squad data returned.
+          </Text>
         ) : (
           <FlatList
             data={players}
@@ -154,21 +182,33 @@ export default function ClubScreen() {
             scrollEnabled={false}
             renderItem={({ item }) => (
               <Pressable
-                style={({ pressed }) => [styles.playerRow, pressed && { opacity: 0.7 }]}
+                style={({ pressed }) => [
+                  styles.playerRow,
+                  { borderColor: colors.softBorder },
+                  pressed && { opacity: 0.7 },
+                ]}
                 onPress={() =>
                   router.push({
                     pathname: "/player/[playerId]",
-                    params: { playerId: String(item.id), 
+                    params: {
+                      playerId: String(item.id),
                       playerName: item.name,
-                    listPhoto: item.photo,
-                  },
+                      listPhoto: item.photo,
+                    },
                   })
                 }
               >
                 <Image source={{ uri: item.photo }} style={styles.playerImg} />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.playerName} numberOfLines={1}>{item.name}</Text>
-                  <Text style={styles.playerPos}>{item.pos}</Text>
+                  <Text
+                    style={[styles.playerName, { color: colors.text }]}
+                    numberOfLines={1}
+                  >
+                    {item.name}
+                  </Text>
+                  <Text style={[styles.playerPos, { color: colors.subtext }]}>
+                    {item.pos}
+                  </Text>
                 </View>
               </Pressable>
             )}
@@ -179,25 +219,31 @@ export default function ClubScreen() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({
+  label,
+  value,
+  colors,
+}: {
+  label: string;
+  value: number;
+  colors: ReturnType<typeof useAppColors>;
+}) {
   return (
-    <View style={styles.statBox}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
+    <View style={[styles.statBox, { borderColor: colors.softBorder }]}>
+      <Text style={[styles.statLabel, { color: colors.subtext }]}>{label}</Text>
+      <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white", padding: 12 },
+  container: { flex: 1, padding: 12 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16 },
 
   header: { fontSize: 22, fontWeight: "800", marginBottom: 12 },
 
   card: {
-    backgroundColor: "white",
     borderWidth: 1,
-    borderColor: "#e6e6e6",
     borderRadius: 12,
     padding: 12,
     marginBottom: 12,
@@ -212,12 +258,11 @@ const styles = StyleSheet.create({
   statBox: {
     width: "23%",
     borderWidth: 1,
-    borderColor: "#efefef",
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: "center",
   },
-  statLabel: { fontSize: 12, opacity: 0.7 },
+  statLabel: { fontSize: 12 },
   statValue: { fontSize: 16, fontWeight: "800", marginTop: 2 },
 
   playerRow: {
@@ -225,13 +270,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderColor: "#f0f0f0",
     gap: 10,
   },
   playerImg: { width: 40, height: 40, borderRadius: 20 },
   playerName: { fontSize: 16, fontWeight: "700" },
-  playerPos: { opacity: 0.7 },
+  playerPos: {},
 
   error: { fontSize: 16, fontWeight: "800", textAlign: "center", marginBottom: 6 },
-  tip: { opacity: 0.7, textAlign: "center" },
+  tip: { textAlign: "center" },
 });

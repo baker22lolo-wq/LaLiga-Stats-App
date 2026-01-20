@@ -12,6 +12,7 @@ import {
 import ClubRow from "../src/components/ClubRow";
 import { LALIGA } from "../src/constants/laliga";
 import { api } from "../src/services/api";
+import { useAppColors } from "../src/theme/colors";
 
 type TeamItem = {
   id: number;
@@ -21,6 +22,8 @@ type TeamItem = {
 
 export default function ClubsScreen() {
   const router = useRouter();
+  const colors = useAppColors();
+
   const [teams, setTeams] = useState<TeamItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -61,27 +64,37 @@ export default function ClubsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.center}>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
         <ActivityIndicator size="large" />
-        <Text style={{ marginTop: 10 }}>Loading La Liga clubs...</Text>
+        <Text style={{ marginTop: 10, color: colors.text }}>
+          Loading La Liga clubs...
+        </Text>
+        <Text style={{ marginTop: 6, color: colors.subtext }}>
+          (Pull to refresh later)
+        </Text>
       </View>
     );
   }
 
   if (error) {
     return (
-      <View style={styles.center}>
-        <Text style={styles.error}>{error}</Text>
+      <View style={[styles.center, { backgroundColor: colors.bg }]}>
+        <Text style={[styles.error, { color: colors.text }]}>{error}</Text>
+        <Text style={{ marginTop: 8, color: colors.subtext, textAlign: "center" }}>
+          Try restarting Expo with: npx expo start -c
+        </Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <FlatList
         data={teams}
         keyExtractor={(item) => String(item.id)}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         renderItem={({ item }) => (
           <ClubRow
             name={item.name}
@@ -97,7 +110,7 @@ export default function ClubsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white" },
+  container: { flex: 1 },
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16 },
   error: { fontSize: 16, fontWeight: "800", textAlign: "center" },
 });
