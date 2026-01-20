@@ -11,8 +11,8 @@ import {
   View,
 } from "react-native";
 
-import { LALIGA } from "../../../src/constants/laliga";
-import { api } from "../../../src/services/api";
+import { LALIGA } from "../../src/constants/laliga";
+import { api } from "../../src/services/api";
 
 type Standing = {
   rank: number;
