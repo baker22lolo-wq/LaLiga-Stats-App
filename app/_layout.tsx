@@ -1,4 +1,8 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "@react-navigation/native";
 import { Stack } from "expo-router";
 import React from "react";
 import { Pressable, Text, useColorScheme } from "react-native";
@@ -31,9 +35,7 @@ function RootNavigation() {
               })}
               hitSlop={10}
             >
-              <Text style={{ fontSize: 18 }}>
-                {isDark ? "☀️" : "🌙"}
-              </Text>
+              <Text style={{ fontSize: 18 }}>{isDark ? "☀️" : "🌙"}</Text>
             </Pressable>
           ),
         }}
@@ -41,6 +43,10 @@ function RootNavigation() {
         <Stack.Screen name="clubs" options={{ title: "La Liga Clubs" }} />
         <Stack.Screen name="club/[teamId]" options={{ title: "Club" }} />
         <Stack.Screen name="player/[playerId]" options={{ title: "Player" }} />
+        <Stack.Screen
+          name="match-sim"
+          options={{ title: "Match Simulation" }}
+        />
       </Stack>
     </ThemeProvider>
   );

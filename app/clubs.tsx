@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 import ClubRow from "../src/components/ClubRow";
@@ -80,7 +81,9 @@ export default function ClubsScreen() {
     return (
       <View style={[styles.center, { backgroundColor: colors.bg }]}>
         <Text style={[styles.error, { color: colors.text }]}>{error}</Text>
-        <Text style={{ marginTop: 8, color: colors.subtext, textAlign: "center" }}>
+        <Text
+          style={{ marginTop: 8, color: colors.subtext, textAlign: "center" }}
+        >
           Try restarting Expo with: npx expo start -c
         </Text>
       </View>
@@ -89,6 +92,25 @@ export default function ClubsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
+      {/* ⚽ Match Simulation button only */}
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => router.push("/match-sim")}
+          style={({ pressed }) => [
+            styles.simBtn,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.border,
+              opacity: pressed ? 0.7 : 1,
+            },
+          ]}
+        >
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: "700" }}>
+            ⚽ Match Sim
+          </Text>
+        </Pressable>
+      </View>
+
       <FlatList
         data={teams}
         keyExtractor={(item) => String(item.id)}
@@ -100,7 +122,9 @@ export default function ClubsScreen() {
             name={item.name}
             logo={item.logo}
             onPress={() =>
-              router.push(`/club/${item.id}?teamName=${encodeURIComponent(item.name)}`)
+              router.push(
+                `/club/${item.id}?teamName=${encodeURIComponent(item.name)}`,
+              )
             }
           />
         )}
@@ -111,6 +135,26 @@ export default function ClubsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16 },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+  },
   error: { fontSize: 16, fontWeight: "800", textAlign: "center" },
+
+  topBar: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  simBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+  },
 });
