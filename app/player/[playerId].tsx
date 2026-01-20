@@ -1,17 +1,17 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-    ActivityIndicator,
-    Image,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 import { LALIGA } from "../../src/constants/laliga";
-import { PLAYER_DETAIL_IMAGES } from "../../src/constants/playerImages";
+import { PLAYER_DETAIL_IMAGES } from "../../src/constants/playerDetailImages";
 import { api } from "../../src/services/api";
 
 type PlayerStats = {
@@ -44,12 +44,30 @@ export default function PlayerScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [stats, setStats] = useState<PlayerStats | null>(null);
+  console.log("PLAYER ID ON SCREEN:", playerId);
+
 
   // ✅ Image #2 (detail image) — map by playerId, fallback to listPhoto
   const detailPhoto = useMemo(() => {
-    const mapped = PLAYER_DETAIL_IMAGES[String(playerId)];
-    return mapped || listPhoto || "";
-  }, [playerId, listPhoto]);
+  const mapped = PLAYER_DETAIL_IMAGES[String(playerId)];
+
+  // GIF or remote image
+  if (typeof mapped === "string") {
+    return { uri: mapped };
+  }
+
+  // Local image require(...)
+  if (mapped) {
+    return mapped;
+  }
+
+  // Fallback to list photo
+  if (listPhoto) {
+    return { uri: listPhoto };
+  }
+
+  return undefined;
+}, [playerId, listPhoto]);
 
   const loadPlayer = async () => {
     setError("");
@@ -123,12 +141,18 @@ export default function PlayerScreen() {
       {/* Header image (Image #2) */}
       <View style={styles.headerWrap}>
         {detailPhoto ? (
-          <Image source={{ uri: detailPhoto }} style={styles.headerImage} />
-        ) : (
-          <View style={[styles.headerImage, { alignItems: "center", justifyContent: "center" }]}>
-            <Text style={{ opacity: 0.7 }}>No image</Text>
-          </View>
-        )}
+  <Image source={detailPhoto} style={styles.headerImage} />
+) : (
+  <View
+    style={[
+      styles.headerImage,
+      { alignItems: "center", justifyContent: "center" },
+    ]}
+  >
+    <Text style={{ color: "white", opacity: 0.7 }}>No Image</Text>
+  </View>
+)}
+
 
         {/* Dark overlay */}
         <View style={styles.overlay} />
