@@ -1,98 +1,111 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  View
+} from "react-native";
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import Constants from "expo-constants";
+import { LALIGA } from "../../src/constants/laliga";
+import { api } from "../../src/services/api";
+
+type TeamItem = {
+  id: number;
+  name: string;
+  logo: string;
+};
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const router = useRouter();
+  const [teams, setTeams] = useState<TeamItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState("");
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const loadTeams = async () => {
+  setError("");
+
+  console.log("API KEY:", Constants.expoConfig?.extra?.API_FOOTBALL_KEY);
+  console.log("League/Season:", LALIGA);
+
+  try {
+    const res = await api.get("/teams", {
+      params: { league: LALIGA.leagueId, season: LALIGA.season },
+    });
+
+    console.log("Response:", res.data);
+
+    const list: TeamItem[] = (res.data?.response || [])
+      .map((item: any) => ({
+        id: item.team?.id,
+        name: item.team?.name,
+        logo: item.team?.logo,
+      }))
+      .filter((t: TeamItem) => t.id && t.name && t.logo);
+
+    setTeams(list);
+  } catch (e: any) {
+    console.log("API ERROR:", e?.response?.data || e?.message || e);
+    setError("Failed to load teams. Check API key / season / internet.");
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
+
+
+  useEffect(() => {
+    loadTeams();
+  }, []);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadTeams();
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" />
+        <Text style={{ marginTop: 10 }}>Loading La Liga teams...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.error}>{error}</Text>
+        <Text style={styles.tip}>
+          Tip: confirm your API key in .env then restart with: npx expo start -c
+        </Text>
+      </View>
+    );
+  }
+  if (!teams.length) {
+  return (
+    <View style={styles.center}>
+      <Text style={styles.error}>No teams found.</Text>
+      <Text style={styles.tip}>
+        This usually means the season is not available on your API plan.
+      </Text>
+    </View>
   );
 }
 
+return (
+  <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <Text style={{ fontSize: 28, fontWeight: "bold" }}>HOME SCREEN WORKING</Text>
+  </View>
+);
+
+}
+
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  container: { flex: 1, backgroundColor: "white" },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16 },
+  error: { fontSize: 16, fontWeight: "700", marginBottom: 8, textAlign: "center" },
+  tip: { opacity: 0.7, textAlign: "center" },
 });
